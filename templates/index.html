@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>UPI Fraud Detector</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/style.css"/>
+<style>
+/* Password Checker — white theme */
+.pw-field-shell {
+  position:relative; border-radius:7px;
+  border:1.5px solid #cbd5e1;
+  background:#f8fafc;
+  overflow:hidden; display:flex; align-items:stretch;
+}
+.pw-field-shell:focus-within { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.12); }
+#pw-input {
+  flex:1; padding:10px 13px; border:none; outline:none;
+  background:transparent; color:#1e293b;
+  font-family:'JetBrains Mono',monospace; font-size:13px;
+}
+#pw-toggle {
+  width:38px; border:none; border-left:1px solid #e2e8f0;
+  background:transparent; color:#64748b; cursor:pointer; font-size:15px;
+  transition:color 0.15s;
+}
+#pw-toggle:hover { color:#2563eb; }
+
+.pw-strength-wrapper { margin-top:12px; }
+.pw-label-row {
+  display:flex; justify-content:space-between;
+  font-size:11px; color:#64748b; margin-bottom:5px;
+  font-family:'JetBrains Mono',monospace;
+}
+#pw-rating { color:#16a34a; font-weight:600; }
+#pw-strength-bar {
+  width:100%; height:7px; border-radius:99px;
+  background:#e2e8f0; overflow:hidden; border:none;
+}
+#pw-strength-fill {
+  height:100%; width:0%;
+  background:#dc2626;
+  transition:width 0.25s ease-out, background 0.25s;
+}
+.pw-scale {
+  display:flex; justify-content:space-between;
+  font-size:10px; color:#94a3b8; margin-top:3px;
+  font-family:'JetBrains Mono',monospace;
+}
+
+.pw-meta-grid { display:flex; gap:8px; margin-top:10px; }
+.pw-meta-card {
+  flex:1; border-radius:7px;
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+  padding:8px 10px; transition:border-color 0.15s;
+}
+.pw-meta-card.breached { border-color:#dc2626; background:#fef2f2; }
+.pw-meta-label {
+  font-size:10px; text-transform:uppercase;
+  letter-spacing:0.08em; color:#64748b;
+  font-family:'JetBrains Mono',monospace;
+}
+.pw-meta-value {
+  display:block; margin-top:3px;
+  font-size:13px; font-family:'JetBrains Mono',monospace; color:#1e293b; font-weight:500;
+}
+
+.pw-feedback { margin-top:10px; padding-left:14px; }
+.pw-feedback li { font-size:12px; color:#475569; margin-bottom:3px; font-family:'JetBrains Mono',monospace; }
+
+.pw-console {
+  margin-top:10px;
+  border-radius:7px; border:1px solid #e2e8f0;
+  background:#f8fafc;
+  padding:8px 10px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px; color:#16a34a;
+  max-height:90px; overflow-y:auto;
+}
+.pw-console-line { margin-bottom:2px; white-space:nowrap; color:#374151; }
+.pw-console-line:first-child { color:#2563eb; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">⬡</div>
+    <div>
+      <div class="brand-name">UPI<span>Guard</span></div>
+      <div class="brand-sub">FRAUD DETECTION SYSTEM</div>
+    </div>
+  </div>
+  <div class="sidebar-status">
+    <div class="status-dot"></div>
+    <span>SYSTEM ONLINE</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/" class="nav-item active"><span>⬡</span> UPI Checker</a>
+    <a href="/dashboard" class="nav-item"><span>◈</span> Dashboard</a>
+    <a href="/export" class="nav-item"><span>⬢</span> Export / Manage</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="footer-line">SECURE CHANNEL</div>
+    <div class="footer-line">AES-256 ENCRYPTED</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- HEADER -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <span class="top-tag">LIVE</span>
+      <span class="top-title">UPI Fraud Intelligence System</span>
+    </div>
+    <div class="top-bar-right">
+      <span id="clock" class="clock"></span>
+    </div>
+  </div>
+
+  <!-- 3-COLUMN GRID -->
+  <div class="content-grid" style="grid-template-columns:1.1fr 1fr 0.9fr;gap:1.25rem;padding:1.5rem 2rem;align-items:start;">
+
+    <!-- COL 1: UPI CHECKER -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-icon">⬡</span>
+        <span>UPI ID Analyzer</span>
+        <span class="panel-tag">REALTIME</span>
+      </div>
+      <div class="panel-body">
+        <div class="field-label">Target UPI ID</div>
+        <div class="input-row">
+          <input id="upiInput" class="hacker-input" type="text" placeholder="example@ybl" autocomplete="off"/>
+          <button class="scan-btn" onclick="analyzeUPI()">Scan</button>
+        </div>
+
+        <div class="quick-label">Quick Test</div>
+        <div class="chips">
+          <span class="chip"        onclick="setUPI('rajesh.kumar@oksbi')">rajesh.kumar@oksbi</span>
+          <span class="chip danger" onclick="setUPI('lottery.win.free@upi')">lottery.win.free@upi</span>
+          <span class="chip warn"   onclick="setUPI('unknown7823@paytm')">unknown7823@paytm</span>
+          <span class="chip danger" onclick="setUPI('earn.daily@ybl')">earn.daily@ybl</span>
+        </div>
+
+        <div id="resultBox" class="result-box" style="display:none">
+          <div class="result-top">
+            <div>
+              <div class="result-label">Verdict</div>
+              <div id="verdict" class="verdict-text"></div>
+            </div>
+            <div>
+              <div class="result-label">Risk Score</div>
+              <div id="score" class="score-text"></div>
+            </div>
+          </div>
+          <div class="score-bar-track">
+            <div id="scoreFill" class="score-bar-fill"></div>
+          </div>
+          <div class="result-label" style="margin-top:1rem">Signals Detected</div>
+          <div id="reasons" class="reasons-list"></div>
+        </div>
+
+        <div id="pieWrap" style="display:none;margin-top:1.5rem;text-align:center">
+          <div class="result-label">Safety Analysis</div>
+          <img id="pieChart" src="/static/pie.png" style="width:180px;margin-top:0.5rem;border-radius:8px;border:1px solid #e2e8f0"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- COL 2: PASSWORD + URL STACKED -->
+    <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+      <!-- PASSWORD STRENGTH CHECKER -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-icon">◈</span>
+          <span>Password Strength Checker</span>
+          <span class="panel-tag">HIBP</span>
+        </div>
+        <div class="panel-body">
+          <div class="field-label">Enter Password to Analyze</div>
+          <div class="pw-field-shell">
+            <input id="pw-input" type="password" placeholder="Enter your UPI/bank password…" autocomplete="off"/>
+            <button id="pw-toggle" type="button" title="Show/hide">👁</button>
+          </div>
+          <div class="pw-strength-wrapper">
+            <div class="pw-label-row">
+              <span>Strength</span>
+              <span id="pw-rating">Waiting for input…</span>
+            </div>
+            <div id="pw-strength-bar">
+              <div id="pw-strength-fill"></div>
+            </div>
+            <div class="pw-scale">
+              <span>Very Weak</span><span>Weak</span><span>Medium</span>
+              <span>Strong</span><span>Very Strong</span>
+            </div>
+          </div>
+          <div class="pw-meta-grid">
+            <div class="pw-meta-card">
+              <div class="pw-meta-label">Entropy</div>
+              <span id="pw-entropy" class="pw-meta-value">—</span>
+            </div>
+            <div class="pw-meta-card" id="pw-breach-card">
+              <div class="pw-meta-label">Breach Status</div>
+              <span id="pw-pwned" class="pw-meta-value">Not scanned</span>
+            </div>
+          </div>
+          <button class="scan-btn" id="pw-scan-btn" type="button" style="margin-top:10px;width:100%;">
+            ▶ Run Deep Scan
+          </button>
+          <div id="pw-breach-detail" style="display:none;margin-top:8px;"></div>
+          <ul id="pw-feedback" class="pw-feedback"></ul>
+          <div class="pw-console" id="pw-console">
+            <div class="pw-console-line">[READY] Enter a password to begin scan…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- URL SCANNER -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-icon">🔗</span>
+          <span>Suspicious Link Scanner</span>
+          <span class="panel-tag">VIRUSTOTAL</span>
+        </div>
+        <div class="panel-body">
+          <div class="field-label">Paste Suspicious URL</div>
+          <div class="input-row">
+            <input id="urlInput" class="hacker-input" type="text" placeholder="https://fake-upi-kyc.xyz/claim"/>
+            <button id="urlScanBtn" class="scan-btn" onclick="scanURL()">Scan</button>
+          </div>
+          <div class="info-box">
+            <span class="info-icon">ℹ</span>
+            Scans with 70+ antivirus engines via VirusTotal free API. <strong>Takes ~10–15 sec.</strong>
+          </div>
+          <div id="urlResult" style="display:none;margin-top:0.75rem">
+            <div id="urlVerdict" class="breach-verdict"></div>
+            <div id="urlStats"   class="breach-sites" style="margin-top:0.5rem"></div>
+            <div id="urlTip"     class="breach-tip"></div>
+            <div id="urlFlags"   style="display:none;margin-top:8px;padding:10px;border:1px solid #fde68a;border-radius:7px;background:#fffbeb;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COL 3: RECENT SCANS -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-icon">⬢</span>
+        <span>Recent Scans</span>
+      </div>
+      <div class="panel-body">
+        <div id="recentList" class="recent-list">
+          <div class="no-data">No scans yet — run a UPI check above</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

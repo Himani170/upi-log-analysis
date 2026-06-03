@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Export Reports — UPI Guard</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/style.css"/>
+<style>
+.export-page { max-width: 860px; margin: 2rem auto; padding: 0 2rem; }
+.section-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.export-big-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+.export-big-card {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 1.75rem 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+.export-big-card:hover {
+  border-color: #bfdbfe;
+  background: rgba(0,245,255,0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,245,255,0.08);
+}
+.export-big-card.email-card:hover {
+  border-color: var(--amber);
+  background: rgba(245,166,35,0.05);
+  box-shadow: 0 8px 24px rgba(245,166,35,0.08);
+}
+.export-big-card.both-card:hover {
+  border-color: var(--green);
+  background: rgba(0,255,135,0.05);
+  box-shadow: 0 8px 24px rgba(0,255,135,0.08);
+}
+.ecard-icon { font-size: 2.5rem; }
+.ecard-title {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--blue);
+  letter-spacing: 1px;
+}
+.email-card .ecard-title { color: var(--amber); }
+.both-card  .ecard-title { color: var(--green); }
+.ecard-desc {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.ecard-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 3px;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  color: var(--muted);
+}
+.dl-btn {
+  width: 100%;
+  padding: 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  border-radius: 5px;
+  border: 1px solid var(--blue);
+  background: var(--blue3);
+  color: var(--blue);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: block;
+  margin-top: auto;
+}
+.dl-btn:hover { background: var(--blue); color: var(--bg); }
+.email-card .dl-btn { border-color: var(--amber); background: rgba(245,166,35,0.1); color: var(--amber); }
+.email-card .dl-btn:hover { background: var(--amber); color: var(--bg); }
+.both-card .dl-btn { border-color: var(--green); background: rgba(0,255,135,0.08); color: var(--green); }
+.both-card .dl-btn:hover { background: var(--green); color: var(--bg); }
+
+.danger-zone {
+  background: rgba(255,0,60,0.04);
+  border: 1px solid rgba(255,0,60,0.2);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+.danger-zone-header {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--red);
+  letter-spacing: 1.5px;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.danger-zone-desc {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+.clear-btn {
+  padding: 10px 24px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  border-radius: 5px;
+  border: 1px solid var(--red);
+  background: rgba(255,0,60,0.08);
+  color: var(--red);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.clear-btn:hover { background: var(--red); color: white; }
+.confirm-row {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  margin-top: 0.75rem;
+}
+.confirm-yes {
+  padding: 8px 18px;
+  font-family: var(--mono);
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid var(--red);
+  background: var(--red);
+  color: white;
+  cursor: pointer;
+}
+.confirm-no {
+  padding: 8px 18px;
+  font-family: var(--mono);
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.confirm-text { font-family: var(--mono); font-size: 12px; color: var(--amber); }
+.clear-success {
+  display: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--green);
+  margin-top: 0.75rem;
+}
+.stats-bar {
+  display: flex;
+  gap: 1.25rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+}
+.sbar-item { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.sbar-item span { color: var(--blue); font-size: 16px; margin-left: 6px; }
+.sbar-item.safe-s span { color: var(--green); }
+.sbar-item.susp-s span { color: var(--amber); }
+.sbar-item.fraud-s span { color: var(--red); }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">⬡</div>
+    <div>
+      <div class="brand-name">UPI<span>GUARD</span></div>
+      <div class="brand-sub">FRAUD DETECTION SYSTEM</div>
+    </div>
+  </div>
+  <div class="sidebar-status"><div class="status-dot"></div><span>SYSTEM ONLINE</span></div>
+  <nav class="sidebar-nav">
+    <a href="/" class="nav-item"><span>⬡</span> UPI CHECKER</a>
+    <a href="/dashboard" class="nav-item"><span>◈</span> DASHBOARD</a>
+    <a href="/export" class="nav-item active"><span>⬢</span> EXPORT / MANAGE</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="footer-line">SECURE CHANNEL</div>
+    <div class="footer-line">AES-256 ENCRYPTED</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <span class="top-tag">EXPORT ]</span>
+      <span class="top-title">REPORTS &amp; DATA MANAGEMENT</span>
+    </div>
+  </div>
+
+  <div class="export-page">
+
+    <div class="stats-bar">
+      <div class="sbar-item">UPI SCANS <span>{{ total }}</span></div>
+      <div class="sbar-item safe-s">SAFE <span>{{ safe }}</span></div>
+      <div class="sbar-item susp-s">SUSPICIOUS <span>{{ susp }}</span></div>
+      <div class="sbar-item fraud-s">FRAUD <span>{{ fraud }}</span></div>
+      <div class="sbar-item" style="border-left:1px solid var(--border);padding-left:1.25rem;margin-left:0.25rem">LINKS SCANNED <span>{{ url_total }}</span></div>
+      <div class="sbar-item fraud-s">DANGEROUS <span>{{ url_danger }}</span></div>
+    </div>
+
+    <div class="section-title">⬢ DOWNLOAD PDF REPORT</div>
+    <div class="export-big-grid">
+
+      <div class="export-big-card upi-card">
+        <div class="ecard-icon">💳</div>
+        <div class="ecard-title">UPI FRAUD REPORT</div>
+        <div class="ecard-desc">All UPI ID scan results with scores, verdicts, risk flags and analysis details</div>
+        <div class="ecard-count">{{ total }} UPI records</div>
+        <a href="/download-pdf?type=upi" class="dl-btn" download>⬇ DOWNLOAD PDF</a>
+      </div>
+
+      <div class="export-big-card email-card link-card">
+        <div class="ecard-icon">📧</div>
+        <div class="ecard-title">LINK SCANNER REPORT</div>
+        <div class="ecard-desc">All URLs scanned via VirusTotal — dangerous, suspicious &amp; clean link verdicts with engine counts</div>
+        <div class="ecard-count">{{ url_total }} URL records</div>
+        <a href="/download-pdf?type=links" class="dl-btn" download>⬇ DOWNLOAD PDF</a>
+      </div>
+
+      <div class="export-big-card both-card">
+        <div class="ecard-icon">📋</div>
+        <div class="ecard-title">FULL COMBINED REPORT</div>
+        <div class="ecard-desc">Complete security report — UPI fraud detection + link scanner results combined</div>
+        <div class="ecard-count">{{ total }} total records</div>
+        <a href="/download-pdf?type=both" class="dl-btn" download>⬇ DOWNLOAD PDF</a>
+      </div>
+
+    </div>
+
+    <div class="section-title">🗑 DATA MANAGEMENT</div>
+    <div class="danger-zone">
+      <div class="danger-zone-header">⚠ CLEAR SCAN HISTORY</div>
+      <div class="danger-zone-desc">
+        Permanently delete all scan records from the database. This cannot be undone.
+        Download your report above before clearing if you need a record.
+      </div>
+      <button class="clear-btn" onclick="showConfirm()">🗑 CLEAR ALL HISTORY</button>
+      <div class="confirm-row" id="confirmRow">
+        <span class="confirm-text">Are you sure? This deletes ALL {{ total }} UPI + {{ url_total }} link scan records permanently.</span>
+        <button class="confirm-yes" onclick="clearHistory()">YES, DELETE ALL</button>
+        <button class="confirm-no" onclick="hideConfirm()">CANCEL</button>
+      </div>
+      <div class="clear-success" id="clearSuccess">✅ All records cleared successfully. Redirecting...</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function showConfirm() {
+  document.getElementById('confirmRow').style.display = 'flex';
+}
+function hideConfirm() {
+  document.getElementById('confirmRow').style.display = 'none';
+}
+async function clearHistory() {
+  try {
+    const res = await fetch('/clear-history', { method: 'POST' });
+    const d = await res.json();
+    if (d.ok) {
+      document.getElementById('confirmRow').style.display = 'none';
+      document.getElementById('clearSuccess').style.display = 'block';
+      setTimeout(() => { window.location.reload(); }, 1800);
+    }
+  } catch(e) {
+    alert('Error clearing history: ' + e.message);
+  }
+}
+</script>
+</body>
+</html>

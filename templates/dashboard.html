@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Dashboard — UPI Guard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/style.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">⬡</div>
+    <div>
+      <div class="brand-name">UPI<span>Guard</span></div>
+      <div class="brand-sub">FRAUD DETECTION SYSTEM</div>
+    </div>
+  </div>
+  <div class="sidebar-status"><div class="status-dot"></div><span>SYSTEM ONLINE</span></div>
+  <nav class="sidebar-nav">
+    <a href="/" class="nav-item"><span>⬡</span> UPI Checker</a>
+    <a href="/dashboard" class="nav-item active"><span>◈</span> Dashboard</a>
+    <a href="/export" class="nav-item"><span>⬢</span> Export / Manage</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="footer-line">SECURE CHANNEL</div>
+    <div class="footer-line">AES-256 ENCRYPTED</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <span class="top-tag">DASHBOARD</span>
+      <span class="top-title">Fraud Intelligence Overview</span>
+    </div>
+    <div class="top-bar-right">
+      <a href="/export" class="export-btn">⬢ Export / Manage</a>
+    </div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-label">Total Scanned</div>
+      <div class="stat-value">{{ history|length }}</div>
+    </div>
+    <div class="stat-card safe-card">
+      <div class="stat-label">Safe</div>
+      <div class="stat-value safe-val">{{ safe }}</div>
+    </div>
+    <div class="stat-card warn-card">
+      <div class="stat-label">Suspicious</div>
+      <div class="stat-value warn-val">{{ susp }}</div>
+    </div>
+    <div class="stat-card danger-card">
+      <div class="stat-label">Fraud</div>
+      <div class="stat-value danger-val">{{ fraud }}</div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="content-grid">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-icon">◈</span><span>Verdict Distribution</span></div>
+      <div class="panel-body" style="display:flex;align-items:center;justify-content:center;min-height:260px">
+        {% if history %}
+        <canvas id="verdictChart" width="280" height="280"></canvas>
+        {% else %}
+        <div class="no-data">No data — run some UPI checks first</div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-icon">⬡</span><span>Score History</span></div>
+      <div class="panel-body" style="min-height:260px">
+        {% if history %}
+        <canvas id="scoreChart"></canvas>
+        {% else %}
+        <div class="no-data">No data yet</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- URL SCANNER -->
+  <div class="panel" style="margin:0 2rem 1.5rem">
+    <div class="panel-header">
+      <span class="panel-icon">🔗</span>
+      <span>Suspicious Link Scanner</span>
+      <span class="panel-tag">VIRUSTOTAL</span>
+    </div>
+    <div class="panel-body">
+      <div class="info-box">
+        <span class="info-icon">ℹ</span>
+        Paste any suspicious URL — scanned through VirusTotal (70+ antivirus engines) plus our own signal checks for phishing, IP-based links, missing HTTPS, and fraud keywords.
+      </div>
+      <div class="field-label">Enter URL to Scan</div>
+      <div class="input-row">
+        <input id="urlInput" class="hacker-input" type="text" placeholder="https://suspicious-link.com/verify-kyc" autocomplete="off"/>
+        <button class="scan-btn" onclick="scanUrl()">Scan URL</button>
+      </div>
+      <div class="quick-label">Quick Test Samples</div>
+      <div class="chips">
+        <span class="chip"        onclick="setUrl('https://google.com')">google.com</span>
+        <span class="chip warn"   onclick="setUrl('http://upi-verify-kyc.xyz/login')">upi-verify-kyc.xyz</span>
+        <span class="chip danger" onclick="setUrl('http://192.168.1.1/bank-login')">IP-based link</span>
+        <span class="chip danger" onclick="setUrl('http://free-prize-claim-now.win/upi')">prize-claim.win</span>
+      </div>
+      <div id="urlScanning" class="url-scanning">Scanning URL — querying VirusTotal…</div>
+      <div id="urlResult" class="url-result-box"></div>
+    </div>
+  </div>
+
+  <!-- EXPORT OPTIONS -->
+  <div class="export-options-panel">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-icon">⬢</span><span>Export Reports</span><span class="panel-tag">PDF</span></div>
+      <div class="panel-body">
+        <div class="field-label" style="margin-bottom:0.75rem">Choose what to include in your PDF export</div>
+        <div class="export-grid">
+          <a href="/export" class="export-card">
+            <div class="export-card-icon">💳</div>
+            <div class="export-card-title">UPI Fraud Only</div>
+            <div class="export-card-desc">All UPI ID scan results with scores, verdicts and risk analysis</div>
+          </a>
+          <a href="/export" class="export-card">
+            <div class="export-card-icon">📧</div>
+            <div class="export-card-title">Suspicious Email Only</div>
+            <div class="export-card-desc">Email breach check results and compromised account records</div>
+          </a>
+          <a href="/export" class="export-card">
+            <div class="export-card-icon">📋</div>
+            <div class="export-card-title">Full Report (Both)</div>
+            <div class="export-card-desc">Complete report — UPI fraud data + suspicious email breach analysis</div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPI SCAN HISTORY TABLE -->
+  <div class="panel" style="margin:0 2rem 1rem">
+    <div class="panel-header">
+      <span class="panel-icon">⬢</span>
+      <span>UPI Scan History</span>
+      <span class="panel-tag">{{ history|length }} records</span>
+    </div>
+    <div class="panel-body" style="padding:0">
+      {% if history %}
+      <table class="hack-table">
+        <thead><tr>
+          <th>#</th><th>UPI ID</th><th>Score</th><th>Verdict</th><th>Reason</th><th>Time</th>
+        </tr></thead>
+        <tbody>
+        {% for r in history %}
+        <tr>
+          <td>{{ r[0] }}</td>
+          <td class="mono">{{ r[1] }}</td>
+          <td><span class="score-pill">{{ r[2] }}</span></td>
+          <td><span class="verdict-pill {{ r[3]|lower }}">{{ r[3] }}</span></td>
+          <td class="reason-cell">{{ r[4] }}</td>
+          <td class="mono time-cell">{{ r[5] or '—' }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="no-data" style="padding:2rem">No UPI records yet</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- LINK SCAN HISTORY TABLE -->
+  <div class="panel" style="margin:0 2rem 1.5rem">
+    <div class="panel-header">
+      <span class="panel-icon">🔗</span>
+      <span>Link Scan History</span>
+      <span class="panel-tag">{{ url_history|length }} records</span>
+    </div>
+    <div class="panel-body" style="padding:0">
+      {% if url_history %}
+      <table class="hack-table">
+        <thead><tr>
+          <th>#</th><th>URL</th><th>Verdict</th><th>Malicious</th><th>Suspicious</th><th>Total Engines</th><th>Time</th>
+        </tr></thead>
+        <tbody>
+        {% for r in url_history %}
+        <tr>
+          <td>{{ r[0] }}</td>
+          <td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r[1] }}</td>
+          <td class="reason-cell">{{ r[2] }}</td>
+          <td><span class="score-pill" style="{% if r[3] and r[3]|int > 0 %}color:var(--red);border-color:var(--red-bd);background:var(--red-bg){% endif %}">{{ r[3] }}</span></td>
+          <td><span class="score-pill" style="{% if r[4] and r[4]|int > 0 %}color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg){% endif %}">{{ r[4] }}</span></td>
+          <td class="mono">{{ r[5] }}</td>
+          <td class="mono time-cell">{{ r[7] or '—' }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="no-data" style="padding:2rem">No link scans yet — use the URL scanner above</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if history %}
+<script>
+const history = {{ history | tojson | safe }};
+const safe  = {{ safe }};
+const susp  = {{ susp }};
+const fraud = {{ fraud }};
+
+/* Donut chart — white-friendly colors */
+new Chart(document.getElementById('verdictChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Safe', 'Suspicious', 'Fraud'],
+    datasets: [{ data: [safe, susp, fraud],
+      backgroundColor: ['#16a34a', '#d97706', '#dc2626'],
+      borderColor: '#ffffff', borderWidth: 3 }]
+  },
+  options: {
+    plugins: {
+      legend: { labels: { color:'#475569', font:{ family:'Inter', size:13 } } }
+    },
+    cutout: '65%'
+  }
+});
+
+/* Bar chart */
+const recent = history.slice(0, 15).reverse();
+new Chart(document.getElementById('scoreChart'), {
+  type: 'bar',
+  data: {
+    labels: recent.map(r => r[1].length > 16 ? r[1].slice(0,16)+'…' : r[1]),
+    datasets: [{ label: 'Score', data: recent.map(r => r[2]),
+      backgroundColor: recent.map(r =>
+        r[3]==='SAFE' ? '#bbf7d0' : r[3]==='FRAUD' ? '#fecaca' : '#fde68a'),
+      borderColor: recent.map(r =>
+        r[3]==='SAFE' ? '#16a34a' : r[3]==='FRAUD' ? '#dc2626' : '#d97706'),
+      borderWidth: 1.5, borderRadius: 4 }]
+  },
+  options: {
+    plugins: { legend: { display:false } },
+    scales: {
+      x: { ticks:{ color:'#64748b', font:{family:'JetBrains Mono',size:11} }, grid:{color:'#f1f5f9'} },
+      y: { ticks:{ color:'#64748b', font:{family:'JetBrains Mono',size:11} }, grid:{color:'#f1f5f9'}, max:100, min:0 }
+    }
+  }
+});
+</script>
+{% endif %}
+
+<script>
+function setUrl(u) { document.getElementById('urlInput').value = u; }
+
+async function scanUrl() {
+  const url = document.getElementById('urlInput').value.trim();
+  if (!url) return;
+  const scanning = document.getElementById('urlScanning');
+  const resultBox = document.getElementById('urlResult');
+  scanning.style.display = 'block';
+  resultBox.style.display = 'none';
+  resultBox.innerHTML = '';
+  try {
+    const res = await fetch('/scan-url', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({url})
+    });
+    const d = await res.json();
+    scanning.style.display = 'none';
+    let cls = 'caution';
+    if (d.safe === true) cls = 'clean';
+    else if (d.safe === false) cls = 'danger';
+    let flagsHtml = '';
+    if (d.pre_flags && d.pre_flags.length) {
+      flagsHtml = '<div class="url-flags">' +
+        d.pre_flags.map(f => `<div class="url-flag-item">⚠ ${f}</div>`).join('') + '</div>';
+    }
+    resultBox.innerHTML = `
+      <div class="url-verdict ${cls}">${d.message || 'Scan complete'}</div>
+      <div class="url-stat-row">
+        <div class="url-stat">🚨 Malicious <span>${d.malicious ?? 0}</span></div>
+        <div class="url-stat">⚠️ Suspicious <span>${d.suspicious ?? 0}</span></div>
+        <div class="url-stat">✅ Clean <span>${d.harmless ?? 0}</span></div>
+        <div class="url-stat">🔍 Engines <span>${d.total ?? 0}</span></div>
+      </div>
+      ${flagsHtml}
+      ${d.tip ? `<div class="url-tip">💡 ${d.tip}</div>` : ''}
+    `;
+    resultBox.style.display = 'block';
+  } catch(e) {
+    scanning.style.display = 'none';
+    resultBox.innerHTML = `<div class="url-verdict danger">Error: ${e.message}</div>`;
+    resultBox.style.display = 'block';
+  }
+}
+document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key==='Enter') scanUrl(); });
+</script>
+</body>
+</html>
